@@ -1,0 +1,11 @@
+# Data
+data/eicu/cohort.csv
+data/mimic-iv/cohort.csv
+data/eicu/collection/*.csv
+data/mimic-iv/collection/*.csv
+data/eicu/collection/patients/*.csv
+data/viz/
+
+# Experiments
+experiments/__pycache__/
+experiments/results/

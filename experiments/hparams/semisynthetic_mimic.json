@@ -1,0 +1,57 @@
+{
+    "px_z": {
+        "max_depth": 3,
+        "n_estimators": 20,
+        "reg_lambda": 2
+    },
+    "px_wz": {
+        "max_depth": 5,
+        "n_estimators": 200,
+        "reg_lambda": 2
+    },
+    "px_vz": {
+        "max_depth": 5,
+        "n_estimators": 50,
+        "reg_lambda": 5
+    },
+    "px_wvz": {
+        "max_depth": 5,
+        "n_estimators": 200,
+        "reg_lambda": 0.5
+    },
+    "y_zx0": {
+        "max_depth": 5,
+        "n_estimators": 20,
+        "reg_lambda": 5
+    },
+    "y_zx1": {
+        "max_depth": 3,
+        "n_estimators": 20,
+        "reg_lambda": 5
+    },
+    "y_wvzx0": {
+        "max_depth": 4,
+        "n_estimators": 20,
+        "reg_lambda": 2
+    },
+    "y_wvzx1": {
+        "max_depth": 3,
+        "n_estimators": 20,
+        "reg_lambda": 1
+    },
+    "mu2_zx0": {
+        "max_depth": 4,
+        "n_estimators": 20,
+        "reg_lambda": 5
+    },
+    "mu3_wzx0": {
+        "max_depth": 5,
+        "n_estimators": 200,
+        "reg_lambda": 2
+    },
+    "mu2_zx1": {
+        "max_depth": 3,
+        "n_estimators": 20,
+        "reg_lambda": 5
+    }
+}
