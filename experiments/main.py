@@ -50,7 +50,6 @@ def run_semisynth(dataset, bootstraps=30, K=5, clip=0.0, n_mc=1000000, sample_kw
     Z_cols = vars['Z']
     sample_kwargs['Y'] = Y
     N = [1000, 2000, 4000, 8000, 16000, 32000]
-    path = f'hparams/semisynthetic_{dataset}.json'
     results_df = estimate_effects(
         sample_semisynth, None, X, Y, 
         W_cols, V_cols, Z_cols, True,
