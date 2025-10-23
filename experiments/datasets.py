@@ -163,7 +163,7 @@ def fit_semisynth(dataset, force_refit=True):
     for V in V_cols:
         isint = (df[V].astype(float) == df[V].astype(int)).all()
         dtypes[V] = int if isint.all() else float
-        path = f'semisynth/{dataset}_models.pkl'
+    path = f'semisynth/{dataset}_models.pkl'
     if os.path.exists(path) and not force_refit:
         print(f'{path} exists and force_refit is False')
         return vars, dtypes
@@ -332,6 +332,7 @@ def load(path):
     df.loc[:, 'race'] = df['race'].map({0: 1, 2:0})
     df = df[(df['spo2_ewa'] >= 70) & (df['spo2_ewa'] <= 100)]
     df = df[(df['sao2_ewa'] >= 70) & (df['sao2_ewa'] <= 100)]
+    df = df[df['age'] >= 18]
     for c in df.columns:
         if c.endswith('_ewa'):
             df.rename(columns={c: c[:-4]}, inplace=True)
