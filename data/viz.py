@@ -27,15 +27,22 @@ def make_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
+age_bins = [17, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, float('inf')]
+age_labels = list(range(len(age_bins) - 1))
+
 make_dir('./viz/')
 eicu_df = pd.read_csv('eicu/cohort.csv')
 if 'ethnicity' in eicu_df.columns:
     eicu_df = eicu_df.rename(columns={'ethnicity': 'race'})
 eicu_df = eicu_df[(eicu_df['spo2_ewa'] >= 70) & (eicu_df['spo2_ewa'] <= 100)]
 eicu_df = eicu_df[(eicu_df['sao2_ewa'] >= 70) & (eicu_df['sao2_ewa'] <= 100)]
+eicu_df = eicu_df[eicu_df['age'] >= 18]
 for c in eicu_df.columns:
     if c.endswith('_ewa'):
         eicu_df.rename(columns={c: c[:-4]}, inplace=True)
+eicu_df['age_group'] = pd.cut(
+    eicu_df['age'], bins=age_bins, labels=age_labels, right=True
+).astype(int)
 print('eICU samples:', len(eicu_df))
 
 mimic_df = pd.read_csv('mimic-iv/cohort.csv')
@@ -47,10 +54,13 @@ mimic_df = mimic_df[(mimic_df['sao2_ewa'] >= 70) & (mimic_df['sao2_ewa'] <= 100)
 for c in mimic_df.columns:
     if c.endswith('_ewa'):
         mimic_df.rename(columns={c: c[:-4]}, inplace=True)
+mimic_df['age_group'] = pd.cut(
+    mimic_df['age'], bins=age_bins, labels=age_labels, right=True
+).astype(int)
 print('MIMIC-IV samples:', len(mimic_df))
 
 combined_df = pd.concat([eicu_df, mimic_df], axis=0)
-print(len(combined_df))
+print('Total samples:', len(combined_df))
 
 # MIMIC
 black_novent_mimic = len(mimic_df[(mimic_df['race'] == 0) & (mimic_df['vented'] == 0)])
@@ -155,19 +165,29 @@ plt.tight_layout()
 plt.savefig('viz/duration.jpg', dpi=300, bbox_inches='tight')
 
 #################################################################
-race_labels = {0: 'Black', 1: 'Asian', 2: 'White', 3: 'Hispanic'}
 
-for x in ['charlson', 'pre_icu_los_oasis']:
+race_labels = {0: 'Black', 1: 'Asian', 2: 'White', 3: 'Hispanic'}
+gender_labels = {0: 'Female', 1: 'Male'}
+age_labels = {0: '≤20', 15: '>90'}
+for i in range(1,15):
+    age_labels[i] = f'{5*(i+3)+1}-{5*(i+4)}'
+
+for x in ['charlson', 'pre_icu_los_oasis', 'gender', 'age_group']:
     if x == 'charlson':
         xlabel = 'Charlson Comorbidity Index'
     elif x == 'pre_icu_los_oasis':
         xlabel = 'pre-ICU OASIS Score'
+    elif x == 'gender':
+        xlabel = 'Sex'
+    elif x == 'age_group':
+        xlabel = 'Age'
     fig, ax = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
     for i in range(2):
         if i == 0:
             df = eicu_df
         else:
             df = mimic_df
+        df = df.dropna(subset=[x])
         frequency = df.groupby([x, 'race']).size().unstack(fill_value=0)
         proportions = frequency.div(frequency.sum(axis=0), axis=1).reset_index()
         melted = proportions.melt(id_vars=x, var_name='race', value_name='proportion')
@@ -178,19 +198,37 @@ for x in ['charlson', 'pre_icu_los_oasis']:
             palette='Set2', ax=ax[i])
     ax[0].set_ylabel('eICU\nProportion')
     ax[1].set_ylabel('MIMIC-IV\nProportion')
-    ax[0].legend(title=None, fontsize=labelsize)
+    if x == 'charlson':
+        ax[0].legend(title=None, fontsize=labelsize)
+    else:
+        ax[0].get_legend().remove()
     ax[1].get_legend().remove()
     if x == 'pre_icu_los_oasis':
         ax[0].set_yticks([0.0, 0.2, 0.4], labels=['0.0', '0.2', '0.4'])
         ax[1].set_yticks([0.0, 0.2, 0.4], labels=['0.0', '0.2', '0.4'])
 
-    r = np.unique(combined_df[x]).astype(int)
+    r = combined_df[x].dropna().unique().astype(int)
     r.sort()
-    labels = [str(n) for n in r]
-    ax[1].set_xticks(r, labels=labels)
+    if x == 'gender':
+        labels = [gender_labels[n] for n in r]
+    elif x == 'age_group':
+        labels = [age_labels[n] for n in r]
+    else:
+        labels = [str(n) for n in r]
+    if x == 'age_group':
+        fp = 'viz/age.jpg'
+        ax[1].set_xticks(r, labels=labels, rotation=45)
+    else:
+        if x == 'gender':
+            fp = 'viz/sex.jpg'
+        if x == 'pre_icu_los_oasis':
+            fp = 'viz/oasis.jpg'
+        else:
+            fp = f'viz/{x}.jpg'
+        ax[1].set_xticks(r, labels=labels)
     ax[1].set_xlabel(xlabel)
     plt.tight_layout()
-    plt.savefig(f'viz/{x}.jpg', dpi=300, bbox_inches='tight')
+    plt.savefig(fp, dpi=300, bbox_inches='tight')
 
 #######################################################################
 

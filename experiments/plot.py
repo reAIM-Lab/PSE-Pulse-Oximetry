@@ -144,9 +144,27 @@ def plot_estimates_bar(eicu_df, mimic_df, fig, ax, y_label='', root=None, SN=Fal
     mimic_means = np.mean(mimic_effects, axis=1)
     eicu_stde = sem(eicu_effects, axis=1)
     mimic_stde = sem(mimic_effects, axis=1)
-    x = np.arange(len(eicu_means))
+    if y_label == 'Rate of ventilation (%)':
+        y = 'rate'
+    elif y_label == 'Duration of ventilation (hrs)':
+        y = 'duration'
+    print(f'--- eICU ventilation {y} VDE {"(SN) " if SN else ""}---')
+    print('mean = {:.{p}f}, 95% CI = ({:.{p}f}, {:.{p}f})'.format(
+        eicu_means[-1],
+        eicu_means[-1] - 1.96 * eicu_stde[-1],
+        eicu_means[-1] + 1.96 * eicu_stde[-1],
+        p = 1 + (y == 'rate'), 
+    ))
+    print(f'--- MIMIC-IV ventilation {y} VDE {"(SN) " if SN else ""}---')
+    print('mean = {:.{p}f}, 95% CI = ({:.{p}f}, {:.{p}f})'.format(
+        mimic_means[-1],
+        mimic_means[-1] - 1.96 * mimic_stde[-1],
+        mimic_means[-1] + 1.96 * mimic_stde[-1],
+        p = 1 + (y == 'rate'), 
+    ))
+    
     width = 0.45
-
+    x = np.arange(len(eicu_means))
     p2 = 0.3 if y_label == 'Rate of ventilation (%)' else 1.0
     eicu_bars = ax.bar(
         x - width/2, eicu_means, width, yerr=1.96*eicu_stde, 
